@@ -1,0 +1,10 @@
+---
+- name: Configure Automated Infra Server
+  hosts: servers
+  become: true
+
+  roles:
+    - ../roles/common
+    - ../roles/docker
+    - ../roles/node_exporter
+    - ../roles/firewall

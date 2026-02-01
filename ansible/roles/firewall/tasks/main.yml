@@ -1,0 +1,19 @@
+- name: Install UFW
+  apt:
+    name: ufw
+    state: present
+
+- name: Allow SSH
+  ufw:
+    rule: allow
+    port: ssh
+
+- name: Allow Node Exporter
+  ufw:
+    rule: allow
+    port: 9100
+
+- name: Enable UFW
+  ufw:
+    state: enabled
+    policy: deny

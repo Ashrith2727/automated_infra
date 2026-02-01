@@ -1,23 +1,27 @@
 provider "libvirt" {
-  uri = "qemu:///session"
-}
-
-resource "libvirt_pool" "default" {
-  name = "automated-infra-pool"
-  type = "dir"
-  path = "${pathexpand("~")}/libvirt-pools/automated_infra"
+  uri = "qemu:///system"
 }
 
 resource "libvirt_volume" "ubuntu_image" {
   name   = "ubuntu-22.04.qcow2"
-  pool   = libvirt_pool.default.name
+  pool   = "default"
   source = "https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img"
   format = "qcow2"
 }
 
+resource "libvirt_volume" "ubuntu_resized" {
+  name           = "ubuntu-vm-disk.qcow2"
+  pool           = "default"
+  base_volume_id = libvirt_volume.ubuntu_image.id
+  format         = "qcow2"
+  
+  # Specify size in bytes (e.g., 20GB = 20 * 1024 * 1024 * 1024)
+  size = 21474836480 
+}
+
 resource "libvirt_cloudinit_disk" "cloudinit" {
   name = "cloudinit.iso"
-  pool = libvirt_pool.default.name
+  pool = "default"
 
   user_data = <<EOF
 #cloud-config
@@ -37,6 +41,7 @@ resource "libvirt_domain" "vm" {
   name   = var.vm_name
   memory = var.memory
   vcpu   = var.vcpu
+  
 
   cloudinit = libvirt_cloudinit_disk.cloudinit.id
 
@@ -46,6 +51,6 @@ resource "libvirt_domain" "vm" {
   }
 
   disk {
-    volume_id = libvirt_volume.ubuntu_image.id
+    volume_id = libvirt_volume.ubuntu_resized.id
   }
 }
