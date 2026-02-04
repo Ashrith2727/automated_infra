@@ -2,7 +2,16 @@
 - name: Configure Automated Infra Server
   hosts: servers
   become: true
+  gather_facts: false
 
+  pre_tasks:
+    - name: Wait for SSH to be available
+      wait_for:
+        host: "{{ ansible_host }}"
+        port: 22
+        timeout: 300
+      delegate_to: localhost
+      become: false
   roles:
     - ../roles/common
     - ../roles/docker
